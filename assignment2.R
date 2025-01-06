@@ -21,6 +21,7 @@ data
 library(dplyr)   # For data manipulation
 library(ggplot2) # For visualizing missing values
 library(naniar)  # For missing value analysis
+library(lubridate) # For hanlding dates
 
 ## EDA
 
@@ -176,3 +177,108 @@ ggplot(fuel_counts, aes(x = Year, y = Count, color = FuelType, group = FuelType)
 
 # -------------------------------------------------
 # Question 5
+
+# Extract year and month
+data <- data %>%
+  mutate(
+    year = year(date_reg),
+    month = month(date_reg, label = TRUE, abbr = TRUE)
+  )
+
+data <- data %>%
+  mutate(
+    period = case_when(
+      year < 2020 ~ "Pre-COVID",
+      year >= 2020 ~ "Post-COVID"
+    )
+  )
+
+# Count registrations per year
+yearly_data <- data %>%
+  group_by(year, period) %>%
+  summarize(total_registrations = n(), .groups = "drop")
+
+# Visualize yearly trends
+ggplot(yearly_data, aes(x = year, y = total_registrations, fill = period)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Yearly Vehicle Registrations in Malaysia",
+    x = "Year",
+    y = "Total Registrations",
+    fill = "Period"
+  ) +
+  theme_minimal()
+
+# Filter data for the COVID-19 period (2020–2021)
+covid_data <- data %>%
+  filter(year %in% c(2020, 2021))
+
+# Count registrations per month
+monthly_data <- covid_data %>%
+  group_by(year, month) %>%
+  summarize(total_registrations = n(), .groups = "drop")
+
+# Visualize monthly trends
+ggplot(monthly_data, aes(x = month, y = total_registrations, group = year, color = as.factor(year))) +
+  geom_line(size = 1) +
+  labs(
+    title = "Monthly Vehicle Registrations During COVID-19",
+    x = "Month",
+    y = "Total Registrations",
+    color = "Year"
+  ) +
+  theme_minimal()
+
+# Summarize yearly registrations by state
+state_yearly_data <- data %>%
+  group_by(state, year) %>%
+  summarize(total_registrations = n(), .groups = "drop")
+
+# Visualize yearly trends by state
+ggplot(state_yearly_data, aes(x = year, y = total_registrations, group = state, color = state)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Yearly Vehicle Registrations by State",
+    x = "Year",
+    y = "Total Registrations",
+    color = "State"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# Summarize vehicle type data
+type_data <- data %>%
+  group_by(year, type) %>%
+  summarize(total_registrations = n(), .groups = "drop")
+
+# Visualize distribution by vehicle type
+ggplot(type_data, aes(x = year, y = total_registrations, fill = type)) +
+  geom_bar(stat = "identity", position = "fill") +
+  labs(
+    title = "Distribution of Vehicle Registrations by Type",
+    x = "Year",
+    y = "Proportion",
+    fill = "Vehicle Type"
+  ) +
+  theme_minimal()
+
+# Summarize fuel type data
+fuel_data <- data %>%
+  group_by(year, fuel) %>%
+  summarize(total_registrations = n(), .groups = "drop")
+
+# Visualize fuel type distribution
+ggplot(fuel_data, aes(x = year, y = total_registrations, fill = fuel)) +
+  geom_bar(stat = "identity", position = "fill") +
+  labs(
+    title = "Fuel Type Distribution of Vehicle Registrations",
+    x = "Year",
+    y = "Proportion",
+    fill = "Fuel Type"
+  ) +
+  theme_minimal()
+
+
+
