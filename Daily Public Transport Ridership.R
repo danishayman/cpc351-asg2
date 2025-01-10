@@ -101,16 +101,22 @@ service_names <- c(
 # Map the service names
 monthly_ridership_long$service <- service_names[monthly_ridership_long$service]
 
-# Create the plot and save it to a variable
-p <- ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
-  geom_bar(stat = "identity", position = "stack", width = 0.8) +
+
+# Convert the month column to a Date type
+monthly_ridership_long$month <- as.Date(paste0(monthly_ridership_long$month, "-01"))
+
+
+# Create the plot with formatted x-axis
+ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
+  geom_bar(stat = "identity", position = "stack", width = 25) +  # Adjust width for better visibility
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "right",
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
     plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5),
-    panel.grid.minor = element_blank()
+    plot.subtitle = element_text(hjust = 0.5, size = 14)
   ) +
   labs(
     title = "Monthly Public Transport Ridership (2019-2024)",
@@ -119,18 +125,14 @@ p <- ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
     y = "Number of Trips",
     fill = "Service"
   ) +
-  scale_y_continuous(labels = comma_format()) +
-  scale_fill_manual(values = custom_palette)
+  scale_y_continuous(labels = scales::comma_format()) +
+  scale_fill_manual(values = custom_palette) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b %Y"  # Format as "Jan 2019", "Feb 2019", etc.
+  )
 
 
-p + theme(
-  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-  axis.text.y = element_text(size = 12),
-  axis.title = element_text(size = 14),
-  legend.text = element_text(size = 12),
-  plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-  plot.subtitle = element_text(hjust = 0.5, size = 14)
-)
 
 
 
