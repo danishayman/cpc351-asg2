@@ -101,7 +101,8 @@ service_names <- c(
 # Map the service names
 monthly_ridership_long$service <- service_names[monthly_ridership_long$service]
 
-ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
+# Create the plot and save it to a variable
+p <- ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
   theme_minimal() +
   theme(
@@ -122,6 +123,14 @@ ggplot(monthly_ridership_long, aes(x = month, y = trips, fill = service)) +
   scale_fill_manual(values = custom_palette)
 
 
+p + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+  axis.text.y = element_text(size = 12),
+  axis.title = element_text(size = 14),
+  legend.text = element_text(size = 12),
+  plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  plot.subtitle = element_text(hjust = 0.5, size = 14)
+)
 
 
 
@@ -142,14 +151,35 @@ lowest_ridership_2023 <- ridership_2023 %>%
   arrange(bus_rkl) %>%
   head(10)
 
+# Format the dates and ridership numbers
+format_ridership <- function(df) {
+  df %>%
+    mutate(
+      date = format(date, "%B %d, %Y"),  # Format date as "Month Day, Year"
+      bus_rkl = format(bus_rkl, big.mark = ",", scientific = FALSE)  # Add thousand separators
+    )
+}
 
-# Display the results
-print("10 days with the highest ridership for Rapid Bus (KL) in 2023")
-highest_ridership_2023[, c("date", "bus_rkl")]
+# Create nicely formatted data frames
+highest_formatted <- format_ridership(highest_ridership_2023)
+lowest_formatted <- format_ridership(lowest_ridership_2023)
 
-print("10 days with the lowest ridership for Rapid Bus (KL) in 2023")
-lowest_ridership_2023[, c("date", "bus_rkl")]
+# Print results with knitr::kable for better formatting
+cat("\n=== 10 Days with Highest Ridership for Rapid Bus (KL) in 2023 ===\n")
+print(knitr::kable(
+  highest_formatted[, c("date", "bus_rkl")],
+  col.names = c("Date", "Number of Trips"),
+  align = c("l", "r"),
+  format = "pipe"
+))
 
+cat("\n\n=== 10 Days with Lowest Ridership for Rapid Bus (KL) in 2023 ===\n")
+print(knitr::kable(
+  lowest_formatted[, c("date", "bus_rkl")],
+  col.names = c("Date", "Number of Trips"),
+  align = c("l", "r"),
+  format = "pipe"
+))
 
 
 
@@ -163,64 +193,39 @@ lowest_ridership_2023[, c("date", "bus_rkl")]
 
 
 #========= QUESTION 8 =========
-# Load necessary libraries
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-library(scales)
 
-# Filter the data for January and February 2022
+# Filter data for January and February 2022
 ridership_2022 <- ridership_data %>%
   filter(year(date) == 2022 & month(date) %in% c(1, 2))
 
-# Create a new column to categorize the day of the week (Weekday or Weekend)
-ridership_2022$day_type <- ifelse(weekdays(ridership_2022$date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
+# Categorize as Weekday or Weekend
+ridership_2022 <- ridership_2022 %>%
+  mutate(day_type = ifelse(weekdays(date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
 
-# Aggregate ridership by day_type (Weekday vs Weekend)
-aggregated_ridership <- ridership_2022 %>%
-  group_by(day_type) %>%
-  summarise(total_ridership = sum(bus_rpn), .groups = 'drop')  # "bus_rpn" for Rapid Bus (Penang)
-
-
-
-# Aggregate data by month and day_type
-monthly_ridership_by_daytype <- ridership_2022 %>%
-  group_by(month, day_type) %>%
+# Aggregate ridership by date and day_type for detailed trends
+daily_ridership <- ridership_2022 %>%
+  group_by(date, day_type) %>%
   summarise(total_ridership = sum(bus_rpn), .groups = 'drop')
 
-
-
-# Visualize the aggregated data using a bar plot
-ggplot(aggregated_ridership, aes(x = day_type, y = total_ridership, fill = day_type)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
-  theme_minimal() +
-  labs(
-    title = "Ridership Comparison for Rapid Bus (Penang) in January and February 2022",
-    subtitle = "Weekdays vs Weekends",
-    x = "Day Type",
-    y = "Total Ridership",
-    fill = "Day Type"
-  ) +
-  scale_y_continuous(labels = comma_format()) +  # Format y-axis to avoid scientific notation
-  scale_fill_manual(values = c("Weekday" = "#4169E1", "Weekend" = "#FF6347"))  # Blue for Weekdays, Red for Weekend
-
-
-
-
-# Visualize the trend over time by weekdays and weekends
-ggplot(monthly_ridership_by_daytype, aes(x = month, y = total_ridership, color = day_type, group = day_type)) +
+# Line Plot: Daily Ridership Trend for Weekdays vs Weekends
+ggplot(daily_ridership, aes(x = date, y = total_ridership, color = day_type, group = day_type)) +
   geom_line(size = 1.2) +
-  geom_point() +
+  geom_point(size = 2) +
   theme_minimal() +
   labs(
-    title = "Monthly Ridership Trend for Rapid Bus (Penang) in January and February 2022",
+    title = "Daily Ridership Trend for Rapid Bus (Penang) in Jan-Feb 2022",
     subtitle = "Weekdays vs Weekends",
-    x = "Month",
+    x = "Date",
     y = "Total Ridership",
     color = "Day Type"
   ) +
-  scale_color_manual(values = c("Weekday" = "#4169E1", "Weekend" = "#FF6347")) +  # Blue for Weekdays, Red for Weekend
-  scale_y_continuous(labels = comma_format())  # Format y-axis to avoid scientific notation
+  scale_color_manual(values = c("Weekday" = "#4169E1", "Weekend" = "#FF6347")) +  # Blue for Weekdays, Red for Weekends
+  scale_x_date(date_breaks = "1 week", date_labels = "%d %b") +  # Weekly date breaks
+  scale_y_continuous(labels = comma) +  # Thousand separators
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
 
 
 
