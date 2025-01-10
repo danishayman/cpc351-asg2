@@ -14,7 +14,7 @@ summary(ridership_data)
 #Convert date column to Dateformat
 ridership_data$date <- as.Date(ridership_data$date)
 
-#========= QUESTION 9 =========
+#========= QUESTION 9 ========
 
 #festival dates in Malaysia for the years 2019–2023
 festival_dates <- list(
@@ -101,7 +101,7 @@ for (i in seq_along(lines)) {
 
 
 
-#========= QUESTION 10 =========
+#========= QUESTION 10 ========
 
 # Filter data 
 average <- ridership_data %>%
