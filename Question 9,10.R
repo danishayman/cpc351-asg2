@@ -28,7 +28,7 @@ print(festival_dates)
 
 # List of rail lines
 lines <- c("rail_lrt_ampang", "rail_mrt_kajang", "rail_lrt_kj", "rail_monorail")
-line_titles <- c(
+titles <- c(
   "LRT Ampang Line Ridership around Festival (2019-2023)",
   "MRT Kajang Line Ridership around Festival (2019-2023)",
   "LRT Kelana Jaya Line Ridership around Festival (2019-2023)",
@@ -83,7 +83,7 @@ for (i in seq_along(lines)) {
   total_ridership <- ggplot(line_data, aes(x = year, y = ridership, fill = festival)) +
     geom_bar(stat = "identity", position = "dodge") +
     labs(
-      title = line_titles[i],
+      title = titles[i],
       x = "Year",
       y = "Total Ridership (in millions)",
       fill = "Festival"
